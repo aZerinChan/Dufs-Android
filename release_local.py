@@ -24,6 +24,9 @@ if not notices:
 source_names=['README.md','LICENSE','build.py','deps.py','release_local.py','ReleaseSignature.java','r8.pro','AndroidManifest.xml']+notices+sorted(
     x.relative_to(root).as_posix() for folder in ('src','res','tests') for x in (root/folder).rglob('*')
     if x.is_file() and x.suffix in ('.py','.xml','.java'))
+source_names+=sorted(
+    x.relative_to(root).as_posix() for x in (root/'docs'/'screenshots').rglob('*')
+    if x.is_file() and x.suffix.lower() in ('.png','.jpg','.jpeg','.webp'))
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 def check(cmd, chosen_env=None):
     result=subprocess.run([str(x) for x in cmd],env=env if chosen_env is None else chosen_env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
