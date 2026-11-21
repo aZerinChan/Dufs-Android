@@ -5,11 +5,23 @@ from pathlib import Path
 parser=argparse.ArgumentParser(__doc__)
 for arg in ('platform','tools','keystore','dufs','deps','output','scratch'):
     parser.add_argument('--'+arg, type=Path, required=True)
+parser.add_argument('--source-zip', type=Path, help='optionally export the verified source ZIP outside --output')
 a=parser.parse_args()
 root=Path(__file__).resolve().parent
-out=a.output.resolve(); out.mkdir(parents=True,exist_ok=True)
-scratch=a.scratch.resolve(); scratch.mkdir(parents=True,exist_ok=True)
-source_names=['README.md','GITHUB-RELEASE.md','build.py','deps.py','release_local.py','ReleaseSignature.java','r8.pro','AndroidManifest.xml']+sorted(x.name for x in root.glob('*LICENSE*.txt'))+sorted(
+out=a.output.resolve()
+if out.exists() and (not out.is_dir() or any(out.iterdir())):
+    parser.error('--output must be new or empty')
+export=a.source_zip.resolve() if a.source_zip else None
+if export is not None and (export.suffix.lower()!='.zip' or export==out or out in export.parents or export.exists()):
+    parser.error('--source-zip must be a new .zip file outside --output')
+scratch=a.scratch.resolve()
+if scratch==out or out in scratch.parents:
+    parser.error('--scratch must be outside --output')
+scratch.mkdir(parents=True,exist_ok=True)
+notices=sorted(x.relative_to(root).as_posix() for x in (root/'LICENSE-FILE').glob('*.txt') if x.is_file())
+if not notices:
+    parser.error('no third-party license files found in LICENSE-FILE/')
+source_names=['README.md','LICENSE','build.py','deps.py','release_local.py','ReleaseSignature.java','r8.pro','AndroidManifest.xml']+notices+sorted(
     x.relative_to(root).as_posix() for folder in ('src','res','tests') for x in (root/folder).rglob('*')
     if x.is_file() and x.suffix in ('.py','.xml','.java'))
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -46,6 +58,8 @@ with tempfile.TemporaryDirectory(prefix='dufs-release-',dir=scratch) as tmp:
         assert token in axml,token
     with zipfile.ZipFile(built) as z:
         assert z.testzip() is None
+        for name in notices:
+            assert hashlib.sha256(z.read('META-INF/licenses/'+Path(name).name)).hexdigest()==manifest[name], name
         assert {'AndroidManifest.xml','resources.arsc','classes.dex'}.issubset(z.namelist())
         dex=b''.join(z.read(n) for n in z.namelist() if n.startswith('classes') and n.endswith('.dex'))
         assert dex.startswith(b'dex\n') and b'Llocal/dufs/manage/MainActivity;' in dex and b'FLAG_SECURE' not in dex
@@ -61,26 +75,24 @@ with tempfile.TemporaryDirectory(prefix='dufs-release-',dir=scratch) as tmp:
     assert 'application-debuggable' not in build
     with zipfile.ZipFile(built) as apk:
         assert not any(n.startswith('lib/') and n.endswith('.so') for n in apk.namelist()), 'Unexpected native ABI requirement'
-    docs=tmp/'GITHUB-RELEASE.md'; shutil.copyfile(src/docs.name,docs)
-    note=tmp/'dufs-0.1.0-verification.txt'
-    note.write_text('Windows/JDK 21, Android platform 35/Build Tools 35.0.0\n'
-        'Built from the extracted, hash-checked source archive.\n'
-        'APK ZIP integrity, DEX launcher anchor and retained network resource, share/open filters, zipalign, signing and night resources checked.\n'
-        f'Universal release APK (no ABI-specific JNI payload): {built.stat().st_size} bytes.\n'
-        'No Android device or emulator connected; Android UI/intent execution not run.\n'
-        'No requests to user server. Dufs v0.47.0 loopback fixture only.\n\n'+test+'\n'+build+'\nBinary manifest (release):\n'+axml,
-        encoding='utf-8')
     cert=tmp/'dufs-release-cert.pem'; sigtool=src/'ReleaseSignature.java'
-    check(['java',sigtool,'sign',a.keystore.resolve(),cert,built,source_zip])
+    check(['java',sigtool,'sign',a.keystore.resolve(),cert,built])
     der=base64.b64decode(''.join(cert.read_text(encoding='ascii').splitlines()[1:-1]),validate=True)
     assert hashlib.sha256(der).hexdigest() in build, 'Detached certificate must match embedded APK signer'
-    files=[built,source_zip,note,docs,cert]+[Path(str(p)+'.sig') for p in (built,source_zip)]
+    files=[built,Path(str(built)+'.sig'),cert]
     sums=tmp/'SHA256SUMS.txt'
     sums.write_bytes(''.join(f'{sha(p)}  {p.name}\n' for p in files).encode('ascii'))
-    check(['java',sigtool,'sign',a.keystore.resolve(),cert,sums])
-    for certificate,artifact in ((cert,built),(cert,source_zip),(cert,sums)):
-        check(['java',sigtool,'verify',certificate,artifact])
-    for p in files+[sums,Path(str(sums)+'.sig')]:
-        copy=out/p.name; shutil.copyfile(p,copy); assert sha(copy)==sha(p); print(f'{sha(copy)}  {copy}')
+    check(['java',sigtool,'verify',cert,built])
+    out.mkdir(parents=True,exist_ok=True)
+    if any(out.iterdir()): parser.error('--output must be new or empty')
+    outputs=[(p,out/p.name) for p in files+[sums]]
+    if export is not None:
+        export.parent.mkdir(parents=True,exist_ok=True)
+        outputs.append((source_zip,export))
+    for p,copy in outputs:
+        with p.open('rb') as source, copy.open('xb') as destination:
+            shutil.copyfileobj(source,destination)
+        assert sha(copy)==sha(p)
+        print(f'{sha(copy)}  {copy}')
     print(test.strip())
     print('PASS package signing, manifest filters and archive verification')
