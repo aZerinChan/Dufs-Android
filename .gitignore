@@ -1,0 +1,34 @@
+# Build and test output
+/build/
+/dist/
+/dependencies/
+/.gradle/
+/.idea/
+/candidate*/
+/test-build/
+__pycache__/
+*.py[cod]
+*.class
+*.jar
+*.apk
+*.idsig
+*.apk.sig
+/SHA256SUMS.txt*
+/source-sha256.json
+
+# Local SDK configuration and secrets
+/local.properties
+.env
+.env.*
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.key
+*.pem
+!dufs-release-cert.pem
+signing-secret
+
+# OS metadata
+.DS_Store
+Thumbs.db
