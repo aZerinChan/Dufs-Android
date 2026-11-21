@@ -33,7 +33,8 @@ with tempfile.TemporaryDirectory(prefix='dufs-build-') as tmp:
     unsigned=w/'unsigned.apk'; shutil.copyfile(w/'res.apk',unsigned)
     with zipfile.ZipFile(unsigned,'a',zipfile.ZIP_DEFLATED) as apk:
         for entry in sorted(dex.glob('classes*.dex')): apk.write(entry,entry.name)
-        for notice in sorted(root.glob('*LICENSE*.txt')): apk.write(notice,'META-INF/licenses/'+notice.name)
+        for notice in sorted((root/'LICENSE-FILE').glob('*.txt')):
+            if notice.is_file(): apk.write(notice,'META-INF/licenses/'+notice.name)
         for jar in libs:
             with zipfile.ZipFile(jar) as z:
                 for n in z.namelist():
