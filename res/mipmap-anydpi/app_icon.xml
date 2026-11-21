@@ -1,0 +1,6 @@
+<!-- Dufs v0.47.0 favicon.ico: traced f, recolored for Android. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp"
+    android:viewportWidth="256" android:viewportHeight="256">
+    <path android:fillColor="@color/icon_background" android:fillType="nonZero" android:pathData="M128,0 A128,128 0 1,1 128,256 A128,128 0 1,1 128,0 Z" />
+    <path android:fillColor="#FFFFFF" android:fillType="nonZero" android:pathData="M142,48 H203 L198.5,67 H143 C118,67 111,77 106,97 L99.5,123.5 H173 L168.5,142 H92 L75.5,209 H52.5 L81,93 C87.5,65 108,48 142,48 Z" />
+</vector>

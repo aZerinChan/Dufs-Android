@@ -1,0 +1,12 @@
+<resources>
+    <dimen name="surface_radius">12dp</dimen>
+    <color name="page">#F3F7FC</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="popup_edge">#00000000</color>
+    <color name="fill">#E4EFFB</color>
+    <color name="ink">#24292E</color>
+    <color name="muted">#465B72</color>
+    <color name="input_hint">#5C6B7B</color>
+    <color name="accent">#0366D6</color>
+    <color name="danger">#A12726</color>
+</resources>

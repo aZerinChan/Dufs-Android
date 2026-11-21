@@ -1,0 +1,11 @@
+<resources>
+    <color name="page">#090F17</color>
+    <color name="surface">#172332</color>
+    <color name="popup_edge">#394B60</color>
+    <color name="fill">#23354A</color>
+    <color name="ink">#FFFFFF</color>
+    <color name="muted">#FFFFFF</color>
+    <color name="input_hint">#A9B7C7</color>
+    <color name="accent">#6DB4FF</color>
+    <color name="danger">#FFB4AB</color>
+</resources>

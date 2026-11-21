@@ -1,0 +1,7 @@
+<!-- Android action glyph in the Dufs web icon style. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp"
+    android:viewportWidth="16" android:viewportHeight="16">
+    <group android:rotation="-90" android:pivotX="8" android:pivotY="8">
+        <path android:fillColor="@color/ink" android:fillType="evenOdd" android:pathData="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z" />
+    </group>
+</vector>
